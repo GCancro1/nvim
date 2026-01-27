@@ -24,7 +24,9 @@ vim.opt.updatetime = 100 -- vim.highlightedyank.duration equivalent
 
 vim.opt.swapfile = false
 vim.opt.backup = false
+
 vim.opt.undofile = true
+vim.opt.undodir = vim.fn.stdpath("state") .. "/undo"
 
 vim.opt.backspace = { "start", "eol", "indent" }
 
@@ -32,15 +34,12 @@ vim.opt.backspace = { "start", "eol", "indent" }
 --  Schedule the setting after `UiEnter` because it can increase startup-time.
 --  Remove this option if you want your OS clipboard to remain independent.
 --  See `:help 'clipboard'`
--- vim.schedule(function()
--- 	vim.o.clipboard = "unnamedplus"
--- end)
+vim.schedule(function()
+	vim.o.clipboard = "unnamedplus"
+end)
 
 -- Enable break indent
 vim.o.breakindent = true
-
--- Save undo history
-vim.o.undofile = true
 
 -- Case-insensitive searching UNLESS \C or one or more capital letters in the search term
 vim.o.ignorecase = true
@@ -114,8 +113,8 @@ map("n", "K", vim.lsp.buf.hover, { desc = "Hover" })
 map("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code action" })
 
 -- Comment toggle (your <leader>/)
-map("n", "<leader>/", "gcc", { noremap = true, desc = "Toggle comment" })
-map("v", "<leader>/", "gcc", { noremap = true, desc = "Toggle comment" })
+-- map("n", "<leader>/", "gcc", { noremap = true, desc = "Toggle comment" })
+-- map("v", "<leader>/", "gcc", { noremap = true, desc = "Toggle comment" })
 
 -- Insert mode: jk → Esc + nohl
 map("i", "jj", "<Esc><cmd>nohlsearch<CR>l", { noremap = true })
@@ -144,16 +143,20 @@ vim.keymap.set("v", "<leader>d", [["_d]], { desc = "Delete to black hole" })
 -- TODO !!!
 -- <leader>, = Text object yank namespace
 -- vim.keymap.set("n", "<leader>,", "<Nop>", { desc = "Text objects" })
---
---
--- vim.keymap.set("n", "<leader>,'",  "vi'pgv\"+y",   { desc = "Yank quotes" })
--- vim.keymap.set("n", "<leader>,\"", "vi\"pgv\"+y",  { desc = "Yank quotes" })
--- vim.keymap.set("n", "<leader>,[",  "vi]pgv\"+y",   { desc = "Yank brackets" })
--- vim.keymap.set("n", "<leader>,{",  "vi}pgv\"+y",   { desc = "Yank braces" })
--- vim.keymap.set("n", "<leader>,b",  "vibpgv\"+y",   { desc = "Yank parens" })
---
 
+vim.keymap.set("n", "<leader>,'", "vi'pgv\"+y", { desc = "Paste without losing reg quotes" })
+vim.keymap.set("n", '<leader>,"', 'vi"pgv"+y', { desc = "Paste without losing reg quotes" })
+vim.keymap.set("n", "<leader>,[", 'vi]pgv"+y', { desc = "Paste without losing reg brackets" })
+vim.keymap.set("n", "<leader>,{", 'vi}pgv"+y', { desc = "Paste without losing reg braces" })
+vim.keymap.set("n", "<leader>,b", 'vibpgv"+y', { desc = "Paste without losing reg parens" })
+
+map("n", "<leader>,a", "mz%a,<Esc>`z", { desc = "add comma to end of bracket" })
 -- vim.keymap.set("n", "<leader>e", vim.cmd.Ex, { desc = "Toggle explorer" })
+
+map("v", "K", ":m '<-2<CR>gv=gv") -- Shift visual selected line up
+map("v", "J", ":m '>+1<CR>gv=gv") -- Shift visual selected line down
 
 -- ====== LOAD PLUGINS ======
 require("setuplazy") -- Your plugins/lazy/kickstart logic
+
+require("offline") -- offline settings

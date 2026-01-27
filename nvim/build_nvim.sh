@@ -8,6 +8,7 @@ sudo apt install -y \
     curl git build-essential gcc unzip nodejs npm \
     ripgrep fd-find clang luarocks neovim
 
+sudo apt install python3-venv python3-dev build-essential
 # Remove apt/npm conflicts
 sudo npm uninstall -g tree-sitter-cli -y
 

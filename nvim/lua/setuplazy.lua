@@ -186,11 +186,17 @@ require("lazy").setup({
 				-- You can put your default mappings / updates / etc. in here
 				--  All the info you're looking for is in `:help telescope.setup()`
 				--
-				-- defaults = {
-				--   mappings = {
-				--     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
-				--   },
-				-- },
+				defaults = {
+					--   mappings = {
+					--     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
+					--   },
+					-- },
+					layout_config = {
+						width = 0.999, -- Full width (almost 100%)
+						height = 0.999, -- Full height
+						prompt_position = "top",
+					},
+				},
 				-- pickers = {}
 				extensions = {
 					["ui-select"] = {
@@ -261,7 +267,7 @@ require("lazy").setup({
 			-- Automatically install LSPs and related tools to stdpath for Neovim
 			-- Mason must be loaded before its dependents so we need to set it up here.
 			-- NOTE: `opts = {}` is the same as calling `require('mason').setup({})`
-			{ "mason-org/mason.nvim", opts = {} },
+			{ "mason-org/mason.nvim", opts = { install_root_dir = vim.fn.stdpath("data") .. "/mason" } },
 			"mason-org/mason-lspconfig.nvim",
 			"WhoIsSethDaniel/mason-tool-installer.nvim",
 
@@ -631,6 +637,9 @@ require("lazy").setup({
 				-- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
 				--    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
 			},
+			enabled = function()
+				return vim.bo.buftype ~= "prompt" -- Already disables in Telescope
+			end,
 
 			appearance = {
 				-- 'mono' (default) for 'Nerd Font Mono' or 'normal' for 'Nerd Font'
@@ -765,6 +774,58 @@ require("lazy").setup({
 			},
 
 			indent = { enable = true, disable = { "ruby" } },
+			config = function()
+				require("nvim-treesitter.configs").setup({
+					textobjects = {
+						select = {
+							enable = true,
+							lookahead = true,
+							keymaps = {
+								-- Inner (motion textobjects)
+								["af"] = "@function.outer",
+								["if"] = "@function.inner",
+								["ac"] = "@class.outer",
+								["ic"] = "@class.inner",
+								["aa"] = "@parameter.outer",
+								["ia"] = "@parameter.inner",
+								["av"] = "@variable.outer",
+								["iv"] = "@variable.inner",
+								["al"] = "@loop.outer",
+								["il"] = "@loop.inner",
+								["ai"] = "@conditional.outer",
+								["ii"] = "@conditional.inner",
+							},
+						},
+						move = {
+							enable = true,
+							set_jumps = true,
+							goto_next_start = {
+								["]m"] = "@function.outer",
+								["]]"] = "@class.outer",
+								["]c"] = "@conditional.outer",
+								["]l"] = "@loop.outer",
+								["]a"] = "@parameter.inner",
+							},
+							goto_next_end = {
+								["]M"] = "@function.outer",
+								["]C"] = "@class.outer",
+								["]L"] = "@loop.outer",
+								["]I"] = "@conditional.outer",
+							},
+							goto_previous_start = {
+								["[m"] = "@function.outer",
+								["[["] = "@class.outer",
+								["[c"] = "@conditional.outer",
+								["[l"] = "@loop.outer",
+							},
+							goto_previous_end = {
+								["[M"] = "@function.outer",
+								["[C"] = "@class.outer",
+							},
+						},
+					},
+				})
+			end,
 		},
 		-- There are additional nvim-treesitter modules that you can use to interact
 		-- with nvim-treesitter. You should go explore a few and see what interests you:
@@ -803,10 +864,14 @@ require("lazy").setup({
 				columns = {},
 				keymaps = {
 					["q"] = "actions.close",
+					["<C-h>"] = false,
+					["<S-CR>"] = { "actions.select", opts = { close = false }, desc = "Open without closing Oil" },
+					-- ["<C-s>"] = "acitons.select_vsplit",
+					-- ["<CR>"] = { "actions.select", opts = { close = false }, desc = "Open without closing Oil" },
 				},
 				delete_to_trash = true,
 				view_options = { show_hidden = true },
-				skip_confirm_for_simple_edits = true,
+				-- skip_confirm_for_simple_edits = true,
 			})
 
 			vim.keymap.set("n", "-", "<cmd>Oil<CR>", { desc = "Open parent directory" })
@@ -874,42 +939,64 @@ require("lazy").setup({
 					delete = "ds", -- Delete surrounding
 					change = "cs", -- Change surrounding
 				},
+				surrounds = {
+					["("] = {
+						add = function()
+							return { { "(" }, { ")" } }
+						end,
+					},
+					["{"] = {
+						add = function()
+							return { { "{" }, { "}" } }
+						end,
+					},
+					["["] = {
+						add = function()
+							return { { "[" }, { "]" } }
+						end,
+					},
+					["<"] = {
+						add = function()
+							return { { "<" }, { ">" } }
+						end,
+					},
+				},
 			})
 		end,
 	},
 
 	-- modern vim sneak
 	-- todo!!!
-	{
-		url = "https://codeberg.org/andyg/leap.nvim",
-		keys = { "s", "<C-s>" },
-		config = function()
-			local leap = require("leap")
-
-			-- Clear defaults first
-			leap.add_default_mappings(false)
-
-			-- ✅ MODE 1: s = 2-CHAR SNEAK (vim-sneak style)
-			vim.keymap.set("n", "s", function()
-				leap.leap({ max_initial_pattern_length = 0 })
-			end)
-			vim.keymap.set("n", "S", function()
-				leap.leap({ max_initial_pattern_length = 0, backward = true })
-			end)
-
-			-- ; , for sneak navigation
-			vim.keymap.set({ "n", "x", "o" }, ";", "<Plug>(leap-next)")
-			vim.keymap.set({ "n", "x", "o" }, ",", "<Plug>(leap-prev)")
-
-			-- ✅ MODE 2: <C-s> = LABEL JUMP (fast visual)
-			vim.keymap.set({ "n", "x", "o" }, "<C-s>", function()
-				leap.leap({ max_initial_pattern_length = 3 })
-			end)
-			vim.keymap.set({ "n", "x", "o" }, "<C-S>", function()
-				leap.leap({ max_initial_pattern_length = 3, backward = true })
-			end)
-		end,
-	},
+	-- {
+	-- 	url = "https://codeberg.org/andyg/leap.nvim",
+	-- 	keys = { "s", "<C-s>" },
+	-- 	config = function()
+	-- 		local leap = require("leap")
+	--
+	-- 		-- Clear defaults first
+	-- 		leap.add_default_mappings(false)
+	--
+	-- 		-- ✅ MODE 1: s = 2-CHAR SNEAK (vim-sneak style)
+	-- 		vim.keymap.set("n", "s", function()
+	-- 			leap.leap({ max_initial_pattern_length = 0 })
+	-- 		end)
+	-- 		vim.keymap.set("n", "S", function()
+	-- 			leap.leap({ max_initial_pattern_length = 0, backward = true })
+	-- 		end)
+	--
+	-- 		-- ; , for sneak navigation
+	-- 		vim.keymap.set({ "n", "x", "o" }, ";", "<Plug>(leap-next)")
+	-- 		vim.keymap.set({ "n", "x", "o" }, ",", "<Plug>(leap-prev)")
+	--
+	-- 		-- ✅ MODE 2: <C-s> = LABEL JUMP (fast visual)
+	-- 		vim.keymap.set({ "n", "x", "o" }, "<C-s>", function()
+	-- 			leap.leap({ max_initial_pattern_length = 3 })
+	-- 		end)
+	-- 		vim.keymap.set({ "n", "x", "o" }, "<C-S>", function()
+	-- 			leap.leap({ max_initial_pattern_length = 3, backward = true })
+	-- 		end)
+	-- 	end,
+	-- },
 
 	{
 		"HiPhish/rainbow-delimiters.nvim",
@@ -937,6 +1024,84 @@ require("lazy").setup({
 				},
 			}
 		end,
+	},
+
+	{
+		"kana/vim-textobj-user", -- REQUIRED dependency
+		lazy = false,
+	},
+	{
+		"kana/vim-textobj-entire",
+		lazy = false, -- Must load early
+		dependencies = { "kana/vim-textobj-user" },
+		keys = { "ae", "ie" },
+	},
+
+	{
+		"debugloop/telescope-undo.nvim",
+		dependencies = { "nvim-telescope/telescope.nvim" },
+		config = function()
+			require("telescope").load_extension("undo")
+		end,
+		keys = {
+			{ "<leader>u", "<cmd>Telescope undo<cr>", desc = "Undo history" },
+		},
+	},
+
+	{
+		"folke/flash.nvim",
+		event = "VeryLazy",
+		opts = {
+			search = {
+				enabled = true,
+			},
+			check = {
+				jump_labels = true,
+			},
+		},
+		keys = {
+			{
+				"s",
+				mode = { "n", "x", "o" },
+				function()
+					require("flash").jump()
+				end,
+				desc = "Flash Jump",
+			},
+			{
+				"S",
+				mode = { "n", "x", "o" },
+				function()
+					require("flash").treesitter()
+				end,
+				desc = "Flash Treesitter",
+			},
+			{
+				"r",
+				mode = "o",
+				function()
+					require("flash").remote()
+				end,
+				desc = "Remote Flash",
+			},
+			{
+				"r",
+				mode = "o",
+				"x",
+				function()
+					require("flash").treesitter_search()
+				end,
+				desc = "Toggle Flash search",
+			},
+			{
+				"<C-s>",
+				mode = { "c" },
+				function()
+					require("flash").toggle()
+				end,
+				desc = "Toggle Flash search",
+			},
+		},
 	},
 
 	-- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
