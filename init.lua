@@ -30,6 +30,8 @@ vim.opt.undodir = vim.fn.stdpath("state") .. "/undo"
 
 vim.opt.backspace = { "start", "eol", "indent" }
 
+local map = vim.keymap.set
+
 -- Sync clipboard between OS and Neovim.
 --  Schedule the setting after `UiEnter` because it can increase startup-time.
 --  Remove this option if you want your OS clipboard to remain independent.
@@ -74,10 +76,10 @@ vim.o.scrolloff = 10
 -- See `:help 'confirm'`
 vim.o.confirm = true
 
-vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
+map("n", "<Esc>", "<cmd>nohlsearch<CR>")
 
 -- Diagnostic keymaps
-vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic [Q]uickfix list" })
+map("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic [Q]uickfix list" })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -85,13 +87,13 @@ vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagn
 --
 -- NOTE: This won't work in all terminal emulators/tmux/etc. Try your own mapping
 -- or just use <C-\><C-n> to exit terminal mode
-vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
+map("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 
 -- need to change terminal pref to not eat these
-vim.keymap.set("n", "<C-h>", "<C-w><C-h>", { desc = "Move focus to the left window" })
-vim.keymap.set("n", "<C-l>", "<C-w><C-l>", { desc = "Move focus to the right window" })
-vim.keymap.set("n", "<C-j>", "<C-w><C-j>", { desc = "Move focus to the lower window" })
-vim.keymap.set("n", "<C-k>", "<C-w><C-k>", { desc = "Move focus to the upper window" })
+map("n", "<C-h>", "<C-w><C-h>", { desc = "Move focus to the left window" })
+map("n", "<C-l>", "<C-w><C-l>", { desc = "Move focus to the right window" })
+map("n", "<C-j>", "<C-w><C-j>", { desc = "Move focus to the lower window" })
+map("n", "<C-k>", "<C-w><C-k>", { desc = "Move focus to the upper window" })
 
 -- Highlight when yanking (copying) text
 --  Try it with `yap` in normal mode
@@ -104,7 +106,6 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	end,
 })
 
-local map = vim.keymap.set
 -- LSP bindings (your gd, gr, gi)
 map("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition" })
 map("n", "gr", vim.lsp.buf.references, { desc = "Go to references" })
@@ -137,26 +138,57 @@ map("n", "<C-q>", "<C-v>", { desc = "Visual block mode" })
 
 map("n", "<leader>q", ":bd<CR>")
 
-vim.keymap.set("n", "<leader>d", [["_d]], { desc = "Delete to black hole" })
-vim.keymap.set("v", "<leader>d", [["_d]], { desc = "Delete to black hole" })
+map("n", "<leader>d", [["_d]], { desc = "Delete to black hole" })
+map("v", "<leader>d", [["_d]], { desc = "Delete to black hole" })
 
 -- TODO !!!
 -- <leader>, = Text object yank namespace
--- vim.keymap.set("n", "<leader>,", "<Nop>", { desc = "Text objects" })
+-- map("n", "<leader>,", "<Nop>", { desc = "Text objects" })
 
-vim.keymap.set("n", "<leader>,'", "vi'pgv\"+y", { desc = "Paste without losing reg quotes" })
-vim.keymap.set("n", '<leader>,"', 'vi"pgv"+y', { desc = "Paste without losing reg quotes" })
-vim.keymap.set("n", "<leader>,[", 'vi]pgv"+y', { desc = "Paste without losing reg brackets" })
-vim.keymap.set("n", "<leader>,{", 'vi}pgv"+y', { desc = "Paste without losing reg braces" })
-vim.keymap.set("n", "<leader>,b", 'vibpgv"+y', { desc = "Paste without losing reg parens" })
+map("n", "<leader>,'", "vi'pgv\"+y", { desc = "Paste without losing reg quotes" })
+map("n", '<leader>,"', 'vi"pgv"+y', { desc = "Paste without losing reg quotes" })
+map("n", "<leader>,[", 'vi]pgv"+y', { desc = "Paste without losing reg brackets" })
+map("n", "<leader>,{", 'vi}pgv"+y', { desc = "Paste without losing reg braces" })
+map("n", "<leader>,b", 'vibpgv"+y', { desc = "Paste without losing reg parens" })
 
 map("n", "<leader>,a", "mz%a,<Esc>`z", { desc = "add comma to end of bracket" })
--- vim.keymap.set("n", "<leader>e", vim.cmd.Ex, { desc = "Toggle explorer" })
+-- map("n", "<leader>e", vim.cmd.Ex, { desc = "Toggle explorer" })
 
 map("v", "K", ":m '<-2<CR>gv=gv") -- Shift visual selected line up
 map("v", "J", ":m '>+1<CR>gv=gv") -- Shift visual selected line down
 
+map("v", "<leader>r", function()
+	vim.cmd('normal! "zy')
+	local from = vim.fn.getreg("z")
+	local to = vim.fn.input('Replace "' .. from .. '" with: ')
+	if to == "" then
+		return
+	end
+	vim.cmd(":%s/" .. vim.fn.escape(from, "/\\") .. "/" .. vim.fn.escape(to, "/\\") .. "/gc")
+end, { silent = true, noremap = true })
+
+-- same replace but in normal mode
+vim.keymap.set("n", "<leader>r", function()
+	local from = vim.fn.expand("<cword>")
+	local to = vim.fn.input('Replace "' .. from .. '" with: ')
+	if to == "" then
+		return
+	end
+	vim.cmd(":%s/" .. vim.fn.escape(from, "/\\") .. "/" .. vim.fn.escape(to, "/\\") .. "/gc")
+end, { desc = "Substitute word under cursor (confirm)" })
+
+-- Normal mode
+map("n", "gh", "^", { desc = "Start of line" })
+map("n", "gl", "$", { desc = "End of line" })
+
+-- Visual mode
+map("v", "gh", "^", { desc = "Start of line (visual)" })
+map("v", "gl", "$", { desc = "End of line (visual)" })
+
+-- Operator-pending mode
+map("o", "gh", "^", { desc = "Start of line (operator)" })
+map("o", "gl", "$", { desc = "End of line (operator)" })
+
+map("n", "<leader>l", "<CMD>:w<CR><CMD>luafile %<CR>", { desc = "source lua" })
 -- ====== LOAD PLUGINS ======
 require("setuplazy") -- Your plugins/lazy/kickstart logic
-
-require("offline") -- offline settings

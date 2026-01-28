@@ -23,7 +23,7 @@ require("lazy").setup({
 })
 
 -- Mason offline
-require("mason-lspconfig").setup({
-	ensure_installed = {}, -- Nothing auto-installs
-	automatic_installation = false,
-})
+-- require("mason-lspconfig").setup({
+-- 	ensure_installed = {}, -- Nothing auto-installs
+-- 	automatic_installation = false,
+-- })

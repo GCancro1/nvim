@@ -870,7 +870,8 @@ require("lazy").setup({
 					-- ["<CR>"] = { "actions.select", opts = { close = false }, desc = "Open without closing Oil" },
 				},
 				delete_to_trash = true,
-				view_options = { show_hidden = true },
+				-- view_options = { show_hidden = true },
+				view_options = { show_hidden = false },
 				-- skip_confirm_for_simple_edits = true,
 			})
 
@@ -1110,7 +1111,10 @@ require("lazy").setup({
 	--  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
 	-- { import = 'custom.plugins' },
 	--
-	-- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
+	-- require("offline"), -- offline settings
+
+	require("training"), -- training
+	-- 	-- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
 	-- Or use telescope!
 	-- In normal mode type `<space>sh` then write `lazy.nvim-plugin`
 	-- you can continue same window with `<space>sr` which resumes last telescope search
