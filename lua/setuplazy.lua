@@ -1,4 +1,5 @@
 -- [[ Install `lazy.nvim` plugin manager ]]
+mes_out = p.read_from(offset, max_messages)
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
@@ -214,6 +215,9 @@ require("lazy").setup({
 			vim.keymap.set("n", "<leader>sh", builtin.help_tags, { desc = "[S]earch [H]elp" })
 			vim.keymap.set("n", "<leader>sk", builtin.keymaps, { desc = "[S]earch [K]eymaps" })
 			vim.keymap.set("n", "<leader>sf", builtin.find_files, { desc = "[S]earch [F]iles" })
+			vim.keymap.set("n", "<leader>sa", function()
+				builtin.find_files({ hidden = true, cwd = vim.fn.expand("~") })
+			end, { desc = "[S]earch [A]ll files" })
 			vim.keymap.set("n", "<leader>ss", builtin.builtin, { desc = "[S]earch [S]elect Telescope" })
 			vim.keymap.set("n", "<leader>sw", builtin.grep_string, { desc = "[S]earch current [W]ord" })
 			vim.keymap.set("n", "<leader>sg", builtin.live_grep, { desc = "[S]earch by [G]rep" })
@@ -907,16 +911,28 @@ require("lazy").setup({
 			end, { desc = "harpoon menu" })
 			vim.keymap.set("n", "<leader>1", function()
 				harpoon:list():select(1)
-			end)
+			end, { desc = "Harpoon f1" })
 			vim.keymap.set("n", "<leader>2", function()
 				harpoon:list():select(2)
-			end)
+			end, { desc = "Harpoon f1" })
 			vim.keymap.set("n", "<leader>3", function()
 				harpoon:list():select(3)
-			end)
+			end, { desc = "Harpoon f1" })
 			vim.keymap.set("n", "<leader>4", function()
 				harpoon:list():select(4)
-			end)
+			end, { desc = "Harpoon f1" })
+			vim.keymap.set("n", "<leader>5", function()
+				harpoon:list():select(5)
+			end, { desc = "Harpoon f1" })
+			vim.keymap.set("n", "<leader>6", function()
+				harpoon:list():select(6)
+			end, { desc = "Harpoon f1" })
+			vim.keymap.set("n", "<leader>7", function()
+				harpoon:list():select(7)
+			end, { desc = "Harpoon f1" })
+			vim.keymap.set("n", "<leader>8", function()
+				harpoon:list():select(8)
+			end, { desc = "Harpoon f1" })
 		end,
 	},
 

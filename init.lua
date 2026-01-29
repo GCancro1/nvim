@@ -1,6 +1,6 @@
 vim.opt.runtimepath:append("/home/g/.local/share/nvim/site")
+vim.opt.formatoptions:remove({ "t", "a" }) -- monitor this for messing with python files
 
-vim.g.have_nerd_font = true
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
@@ -76,10 +76,10 @@ vim.o.scrolloff = 10
 -- See `:help 'confirm'`
 vim.o.confirm = true
 
-map("n", "<Esc>", "<cmd>nohlsearch<CR>")
+vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
 
 -- Diagnostic keymaps
-map("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic [Q]uickfix list" })
+vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic [Q]uickfix list" })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -87,14 +87,25 @@ map("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic [Q]ui
 --
 -- NOTE: This won't work in all terminal emulators/tmux/etc. Try your own mapping
 -- or just use <C-\><C-n> to exit terminal mode
-map("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
+vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 
--- need to change terminal pref to not eat these
-map("n", "<C-h>", "<C-w><C-h>", { desc = "Move focus to the left window" })
-map("n", "<C-l>", "<C-w><C-l>", { desc = "Move focus to the right window" })
-map("n", "<C-j>", "<C-w><C-j>", { desc = "Move focus to the lower window" })
-map("n", "<C-k>", "<C-w><C-k>", { desc = "Move focus to the upper window" })
+-- window movement
+vim.keymap.set("n", "<C-h>", "<C-w><C-h>", { desc = "Move focus to the left window" })
+vim.keymap.set("n", "<C-l>", "<C-w><C-l>", { desc = "Move focus to the right window" })
+vim.keymap.set("n", "<C-j>", "<C-w><C-j>", { desc = "Move focus to the lower window" })
+vim.keymap.set("n", "<C-k>", "<C-w><C-k>", { desc = "Move focus to the upper window" })
 
+vim.keymap.set("n", "<Leader>H", "5<C-w><", { desc = "Narrower x5" })
+vim.keymap.set("n", "<Leader>L", "5<C-w>>", { desc = "Wider x5" })
+vim.keymap.set("n", "<Leader>K", "5<C-w>-", { desc = "Shorter x5" })
+vim.keymap.set("n", "<Leader>J", "5<C-w>+", { desc = "Taller x5" })
+
+--
+vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
+vim.keymap.set("t", "<C-h>", "<C-\\><C-n><C-w>h", { desc = "Move left from terminal" })
+vim.keymap.set("t", "<C-j>", "<C-\\><C-n><C-w>j", { desc = "Move bottom from terminal" })
+vim.keymap.set("t", "<C-k>", "<C-\\><C-n><C-w>k", { desc = "Move top from terminal" })
+vim.keymap.set("t", "<C-l>", "<C-\\><C-n><C-w>l", { desc = "Move right from terminal" })
 -- Highlight when yanking (copying) text
 --  Try it with `yap` in normal mode
 --  See `:help vim.hl.on_yank()`
@@ -107,57 +118,59 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 })
 
 -- LSP bindings (your gd, gr, gi)
-map("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition" })
-map("n", "gr", vim.lsp.buf.references, { desc = "Go to references" })
-map("n", "gi", vim.lsp.buf.implementation, { desc = "Go to implementation" })
-map("n", "K", vim.lsp.buf.hover, { desc = "Hover" })
-map("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code action" })
+vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition" })
+vim.keymap.set("n", "gr", vim.lsp.buf.references, { desc = "Go to references" })
+vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { desc = "Go to implementation" })
+vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "Hover" })
+vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code action" })
 
 -- Comment toggle (your <leader>/)
--- map("n", "<leader>/", "gcc", { noremap = true, desc = "Toggle comment" })
--- map("v", "<leader>/", "gcc", { noremap = true, desc = "Toggle comment" })
+-- vim.keymap.set("n", "<leader>/", "gcc", { noremap = true, desc = "Toggle comment" })
+-- vim.keymap.set("v", "<leader>/", "gcc", { noremap = true, desc = "Toggle comment" })
 
 -- Insert mode: jk → Esc + nohl
-map("i", "jj", "<Esc><cmd>nohlsearch<CR>l", { noremap = true })
+vim.keymap.set("i", "jj", "<Esc><cmd>nohlsearch<CR>l", { noremap = true })
+-- TODO remove me when stop esc out of insert mode
+vim.keymap.set("i", "<Esc>", "<cmd>nohlsearch<CR> useJJ ", { noremap = true })
 
 -- Search centering
-map("n", "n", "nzzzv", { noremap = true })
-map("n", "N", "Nzzzv", { noremap = true })
-map("n", "<C-d>", "<C-d>zz", { noremap = true })
-map("n", "<C-u>", "<C-u>zz", { noremap = true })
+vim.keymap.set("n", "n", "nzzzv", { noremap = true })
+vim.keymap.set("n", "N", "Nzzzv", { noremap = true })
+vim.keymap.set("n", "<C-d>", "<C-d>zz", { noremap = true })
+vim.keymap.set("n", "<C-u>", "<C-u>zz", { noremap = true })
 
-map("n", "<leader>y", '"+y', { desc = "Yank to system clipboard" })
-map("n", "<leader>p", '"+p', { desc = "Paste from clipboard" })
-map("n", "<leader>w", "<cmd>w!<CR>", { desc = "Force write" })
+vim.keymap.set("n", "<leader>y", '"+y', { desc = "Yank to system clipboard" })
+vim.keymap.set("n", "<leader>p", '"+p', { desc = "Paste from clipboard" })
+vim.keymap.set("n", "<leader>w", "<cmd>w!<CR>", { desc = "Force write" })
 
-map("o", "l", "$", { desc = "Operator pending: l → $" })
-map("o", "h", "^", { desc = "Operator pending: h → ^" })
+vim.keymap.set("o", "l", "$", { desc = "Operator pending: l → $" })
+vim.keymap.set("o", "h", "^", { desc = "Operator pending: h → ^" })
 
 -- Ctrl+q → Visual Block Mode (your VSCode Vim habit)
-map("n", "<C-q>", "<C-v>", { desc = "Visual block mode" })
+vim.keymap.set("n", "<C-q>", "<C-v>", { desc = "Visual block mode" })
 
-map("n", "<leader>q", ":bd<CR>")
+vim.keymap.set("n", "<leader>q", ":bd<CR>")
 
-map("n", "<leader>d", [["_d]], { desc = "Delete to black hole" })
-map("v", "<leader>d", [["_d]], { desc = "Delete to black hole" })
+vim.keymap.set("n", "<leader>d", [["_d]], { desc = "Delete to black hole" })
+vim.keymap.set("v", "<leader>d", [["_d]], { desc = "Delete to black hole" })
 
 -- TODO !!!
 -- <leader>, = Text object yank namespace
--- map("n", "<leader>,", "<Nop>", { desc = "Text objects" })
+-- vim.keymap.set("n", "<leader>,", "<Nop>", { desc = "Text objects" })
 
-map("n", "<leader>,'", "vi'pgv\"+y", { desc = "Paste without losing reg quotes" })
-map("n", '<leader>,"', 'vi"pgv"+y', { desc = "Paste without losing reg quotes" })
-map("n", "<leader>,[", 'vi]pgv"+y', { desc = "Paste without losing reg brackets" })
-map("n", "<leader>,{", 'vi}pgv"+y', { desc = "Paste without losing reg braces" })
-map("n", "<leader>,b", 'vibpgv"+y', { desc = "Paste without losing reg parens" })
+vim.keymap.set("n", "<leader>,'", "vi'pgv\"+y", { desc = "Paste without losing reg quotes" })
+vim.keymap.set("n", '<leader>,"', 'vi"pgv"+y', { desc = "Paste without losing reg quotes" })
+vim.keymap.set("n", "<leader>,[", 'vi]pgv"+y', { desc = "Paste without losing reg brackets" })
+vim.keymap.set("n", "<leader>,{", 'vi}pgv"+y', { desc = "Paste without losing reg braces" })
+vim.keymap.set("n", "<leader>,b", 'vibpgv"+y', { desc = "Paste without losing reg parens" })
 
-map("n", "<leader>,a", "mz%a,<Esc>`z", { desc = "add comma to end of bracket" })
--- map("n", "<leader>e", vim.cmd.Ex, { desc = "Toggle explorer" })
+vim.keymap.set("n", "<leader>,a", "mz%a,<Esc>`z", { desc = "add comma to end of bracket" })
+-- vim.keymap.set("n", "<leader>e", vim.cmd.Ex, { desc = "Toggle explorer" })
 
-map("v", "K", ":m '<-2<CR>gv=gv") -- Shift visual selected line up
-map("v", "J", ":m '>+1<CR>gv=gv") -- Shift visual selected line down
+vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv") -- Shift visual selected line up
+vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv") -- Shift visual selected line down
 
-map("v", "<leader>r", function()
+vim.keymap.set("v", "<leader>r", function()
 	vim.cmd('normal! "zy')
 	local from = vim.fn.getreg("z")
 	local to = vim.fn.input('Replace "' .. from .. '" with: ')
@@ -178,17 +191,41 @@ vim.keymap.set("n", "<leader>r", function()
 end, { desc = "Substitute word under cursor (confirm)" })
 
 -- Normal mode
-map("n", "gh", "^", { desc = "Start of line" })
-map("n", "gl", "$", { desc = "End of line" })
+vim.keymap.set("n", "gh", "^", { desc = "Start of line" })
+vim.keymap.set("n", "gl", "$", { desc = "End of line" })
 
 -- Visual mode
-map("v", "gh", "^", { desc = "Start of line (visual)" })
-map("v", "gl", "$", { desc = "End of line (visual)" })
+vim.keymap.set("v", "gh", "^", { desc = "Start of line (visual)" })
+vim.keymap.set("v", "gl", "$", { desc = "End of line (visual)" })
 
 -- Operator-pending mode
-map("o", "gh", "^", { desc = "Start of line (operator)" })
-map("o", "gl", "$", { desc = "End of line (operator)" })
+vim.keymap.set("o", "gh", "^", { desc = "Start of line (operator)" })
+vim.keymap.set("o", "gl", "$", { desc = "End of line (operator)" })
 
-map("n", "<leader>l", "<CMD>:w<CR><CMD>luafile %<CR>", { desc = "source lua" })
+vim.keymap.set("n", "<leader>l", "<CMD>:w<CR><CMD>luafile %<CR>", { desc = "source lua" })
+
+-- remaps for python printing
+vim.keymap.set(
+	"n",
+	"<leader>,p",
+	"yiwo" .. 'print(f"' .. '<C-r>"' .. " = {" .. '<C-r>"' .. '}")' .. "<Esc>",
+	{ noremap = true, silent = true }
+)
+
+-- Visual mode: use selected text as "variable name"
+vim.keymap.set(
+	"v",
+	"<leader>,p",
+	"y" -- yank visual selection into "
+		.. "o" -- new line below
+		.. 'print(f"'
+		.. '<C-r>"' -- insert selection as name
+		.. " = {"
+		.. '<C-r>"' -- insert selection again in {}
+		.. '}")'
+		.. "<Esc>",
+	{ noremap = true, silent = true }
+)
 -- ====== LOAD PLUGINS ======
+
 require("setuplazy") -- Your plugins/lazy/kickstart logic
