@@ -1,0 +1,16 @@
+
+sb <name>        → save current dir as bookmark
+gb <name>        → cd to bookmark
+lb               → list all bookmarks
+rb <name>        → remove bookmark
+ff               → fuzzy‑find files (with bat preview)
+fd               → fuzzy‑cd into directories
+gbf              → fuzzy‑pick a bookmark and cd
+rgf <pattern>    → fuzzy‑pick file containing pattern
+rgj <pattern>    → fuzzy‑pick line and jump to it
+Ctrl‑R           → fzf history search
+Ctrl‑T           → fzf file finder
+Alt‑C            → fzf directory picker
+kbs              → show keybindings with fzf 
+Ctrl-K           → show keybindings with fzf 
+

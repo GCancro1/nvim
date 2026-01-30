@@ -226,6 +226,9 @@ vim.keymap.set(
 		.. "<Esc>",
 	{ noremap = true, silent = true }
 )
+
+vim.keymap.set("n", "gb", ":bn<CR>", { desc = "Next Buf" })
+vim.keymap.set("n", "gB", ":bp<CR>", { desc = "Prev Buf" })
 -- ====== LOAD PLUGINS ======
 
 require("setuplazy") -- Your plugins/lazy/kickstart logic
