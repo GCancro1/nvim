@@ -1,11 +1,18 @@
 vim.opt.runtimepath:append("/home/g/.local/share/nvim/site")
 vim.opt.formatoptions:remove({ "t", "a" }) -- monitor this for messing with python files
+-- Set Python provider (for Vimscript plugins that need Python)
+local venv_path = "/home/g/venv/bin/python"
+vim.g.python_host_prog = venv_path
+vim.g.python3_host_prog = venv_path -- Python 3
 
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
 vim.g.have_nerd_font = true
 vim.o.mouse = "a"
+
+vim.opt.textwidth = 0
+-- vim.opt.formatoptions-=t
 
 vim.opt.relativenumber = true -- editor.lineNumbers: "relative"
 vim.opt.number = true
@@ -29,17 +36,17 @@ vim.opt.undofile = true
 vim.opt.undodir = vim.fn.stdpath("state") .. "/undo"
 
 vim.opt.backspace = { "start", "eol", "indent" }
-
+vim.opt.laststatus = 3
 local map = vim.keymap.set
 
--- Sync clipboard between OS and Neovim.
---  Schedule the setting after `UiEnter` because it can increase startup-time.
---  Remove this option if you want your OS clipboard to remain independent.
---  See `:help 'clipboard'`
-vim.schedule(function()
-	vim.o.clipboard = "unnamedplus"
-end)
-
+-- -- Sync clipboard between OS and Neovim.
+-- --  Schedule the setting after `UiEnter` because it can increase startup-time.
+-- --  Remove this option if you want your OS clipboard to remain independent.
+-- --  See `:help 'clipboard'`
+-- vim.schedule(function()
+-- 	vim.o.clipboard = "unnamedplus"
+-- end)
+--
 -- Enable break indent
 vim.o.breakindent = true
 
@@ -130,6 +137,7 @@ vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code action
 
 -- Insert mode: jk → Esc + nohl
 vim.keymap.set("i", "jj", "<Esc><cmd>nohlsearch<CR>l", { noremap = true })
+vim.keymap.set("i", "jf", "<Esc><cmd>nohlsearch<CR>l", { noremap = true })
 -- TODO remove me when stop esc out of insert mode
 vim.keymap.set("i", "<Esc>", "<cmd>nohlsearch<CR> useJJ ", { noremap = true })
 
@@ -140,7 +148,11 @@ vim.keymap.set("n", "<C-d>", "<C-d>zz", { noremap = true })
 vim.keymap.set("n", "<C-u>", "<C-u>zz", { noremap = true })
 
 vim.keymap.set("n", "<leader>y", '"+y', { desc = "Yank to system clipboard" })
+vim.keymap.set("v", "<leader>y", '"+y', { desc = "Yank to system clipboard" })
+vim.keymap.set("n", "<leader>P", '"+P', { desc = "Paste from clipboard" })
+vim.keymap.set("v", "<leader>P", '"+P', { desc = "Paste from clipboard" })
 vim.keymap.set("n", "<leader>p", '"+p', { desc = "Paste from clipboard" })
+vim.keymap.set("v", "<leader>p", '"+p', { desc = "Paste from clipboard" })
 vim.keymap.set("n", "<leader>w", "<cmd>w!<CR>", { desc = "Force write" })
 
 vim.keymap.set("o", "l", "$", { desc = "Operator pending: l → $" })
@@ -202,7 +214,8 @@ vim.keymap.set("v", "gl", "$", { desc = "End of line (visual)" })
 vim.keymap.set("o", "gh", "^", { desc = "Start of line (operator)" })
 vim.keymap.set("o", "gl", "$", { desc = "End of line (operator)" })
 
-vim.keymap.set("n", "<leader>l", "<CMD>:w<CR><CMD>luafile %<CR>", { desc = "source lua" })
+-- vim.keymap.set("n", "<leader>l", "<CMD>:w<CR><CMD>luafile %<CR>", { desc = "source lua" })
+vim.keymap.set("n", "<leader>l", "<CMD>:w<CR><CMD>luafile ~/.config/nvim/init.lua<CR>", { desc = "source lua" })
 
 -- remaps for python printing
 vim.keymap.set(
@@ -227,8 +240,140 @@ vim.keymap.set(
 	{ noremap = true, silent = true }
 )
 
+vim.keymap.set("n", "gK", vim.diagnostic.open_float, { desc = "Diagnostic float" })
+
+vim.keymap.set("n", "<leader>o", "mzo<Esc>`z", { desc = "Next Buf" })
+vim.keymap.set("n", "<leader>O", "mzO<Esc>`z", { desc = "Next Buf" })
+
 vim.keymap.set("n", "gb", ":bn<CR>", { desc = "Next Buf" })
+
 vim.keymap.set("n", "gB", ":bp<CR>", { desc = "Prev Buf" })
+
+vim.keymap.set("n", "]q", vim.cmd.cnext, { desc = "Quickfix: next item" })
+vim.keymap.set("n", "[q", vim.cmd.cprev, { desc = "Quickfix: prev item" })
+vim.keymap.set("n", "]Q", vim.cmd.cnfile, { desc = "Quickfix: next file" })
+vim.keymap.set("n", "[Q", vim.cmd.cpfile, { desc = "Quickfix: prev file" })
+
+-- Remap Ctrl-Q in insert mode to act like Ctrl-V (literal insert)
+vim.keymap.set("i", "<C-Q>", "<C-V>", { noremap = true, silent = true })
+
 -- ====== LOAD PLUGINS ======
 
 require("setuplazy") -- Your plugins/lazy/kickstart logic
+
+vim.api.nvim_create_autocmd("FileType", {
+	pattern = "qf",
+	callback = function()
+		vim.defer_fn(function()
+			-- Only proceed if this is a quickfix window
+			if vim.bo.filetype == "qf" and vim.bo.buftype == "quickfix" then
+				-- Close the original quickfix window
+				local qf_win_id = vim.fn.win_getid()
+				vim.cmd("Trouble quickfix")
+				-- Close the original window after a tiny delay to avoid race
+				vim.defer_fn(function()
+					pcall(vim.api.nvim_win_close, qf_win_id, true)
+				end, 5)
+			end
+		end, 10)
+	end,
+})
+-- -- Run python and load errors into quickfix automatically
+-- vim.api.nvim_create_autocmd("FileType", {
+-- 	pattern = "python",
+-- 	callback = function()
+-- 		vim.bo.makeprg = "python3 %"
+--
+-- 		-- Simple Python traceback patterns
+-- 		vim.opt.errorformat = "%f:%l:%c:%t:[%m]"
+-- 		-- vim.bo.errorformat = 'File "%f", line %l%.%#,' .. "%Z%\\s*%m," .. "%C%\\s*%.%#"
+-- 	end,
+-- })
+--
+
+-- vim.api.nvim_create_autocmd("FileType", {
+-- 	pattern = "python",
+-- 	callback = function()
+-- 		vim.g.python3_host_prog = "/path/to/your/venv/bin/python"
+-- 		vim.bo.makeprg = "python3 %"
+-- 		vim.bo.errorformat = [[
+--       %AFile\ \"%f\",\ line\ %l%.%#,
+--       %Z%\\s*%m,
+--       %C%\\s*%m,
+--     ]]
+-- 	end,
+-- })
+--
+-- vim.keymap.set("n", "<F4>", function()
+-- 	vim.cmd("make")
+-- 	-- vim.cmd("Trouble quickfix")
+-- 	vim.cmd("copen")
+-- end, { desc = "Python: make → trouble" })
+--
+
+-- Run python3 %, extract file:line from traceback, populate quickfix
+function RunPythonQuickfix()
+	-- Save first
+	vim.cmd("write")
+
+	-- Get full path of current file
+	local file = vim.fn.expand("%:p")
+	if not file:match("%.py$") then
+		vim.notify("Not a Python file", vim.log.levels.WARN)
+		return
+	end
+
+	-- Run python3 and capture all output
+	local cmd = string.format("python3 %s 2>&1", vim.fn.shellescape(file))
+	local output = vim.fn.systemlist(cmd)
+
+	-- If exit code != 0, process output
+	if vim.v.shell_error == 0 then
+		vim.notify("Python script ran successfully", vim.log.levels.INFO)
+	else
+		vim.notify("Python script failed", vim.log.levels.ERROR)
+	end
+
+	-- Build quickfix entries by parsing "File \"...\", line ..." lines
+	local qflist = {}
+	local in_traceback = false
+
+	for _, line in ipairs(output) do
+		-- Look for: File "path/to/file.py", line 123
+		local f, l = line:match('File%s+"([^"]+)",%s+line%s+(%d+)')
+		if f and l then
+			table.insert(qflist, {
+				filename = f,
+				lnum = tonumber(l),
+				text = line, -- e.g. "File \"file.py\", line 123, in <module>"
+			})
+			in_traceback = true
+		elseif in_traceback and line:match("^%s*%S") then
+			-- Append next non‑blank line (e.g. the error message) to the last entry
+			if #qflist > 0 then
+				qflist[#qflist].text = qflist[#qflist].text .. "\n" .. line
+			end
+		end
+	end
+
+	-- If no file/line was found, just dump the raw output as one fake entry
+	if #qflist == 0 then
+		table.insert(qflist, {
+			filename = file,
+			lnum = 1,
+			text = table.concat(output, "\n"),
+		})
+	end
+
+	-- Replace quickfix list with our entries
+	vim.fn.setqflist({}, " ", { items = qflist })
+	vim.cmd("Trouble quickfix close")
+	vim.cmd("Trouble quickfix toggle")
+	vim.cmd("cfirst")
+end
+
+-- Add keybinding (e.g. F5)
+vim.keymap.set("n", "<F4>", RunPythonQuickfix, { desc = "Run Python → quickfix" })
+
+-- - TODO look at this replace to add len() arond values
+-- - :s/\\v\\w+/\\=printf('len(%s)', submatch(0))/g

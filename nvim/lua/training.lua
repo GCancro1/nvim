@@ -31,4 +31,10 @@ return {
 		dependencies = { "MunifTanjim/nui.nvim" },
 		opts = {},
 	},
+
+	{
+		"ThePrimeagen/vim-be-good",
+		-- Optional: disable if you ever want to turn it off
+		-- enabled = false,
+	},
 }

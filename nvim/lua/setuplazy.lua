@@ -181,13 +181,31 @@ require("lazy").setup({
 			-- do as well as how to actually do it!
 
 			-- [[ Configure Telescope ]]
+			local actions = require("telescope.actions")
+			local open_with_trouble = require("trouble.sources.telescope").open
+
+			-- Use this to add more results without clearing the trouble list
+			local add_to_trouble = require("trouble.sources.telescope").add
 			-- See `:help telescope` and `:help telescope.setup()`
 			require("telescope").setup({
 				-- You can put your default mappings / updates / etc. in here
 				--  All the info you're looking for is in `:help telescope.setup()`
 				--
 				defaults = {
-					--   mappings = {
+					mappings = {
+						i = {
+							["<C-t>"] = function(prompt_bufnr)
+								require("telescope.actions").send_to_qflist(prompt_bufnr)
+								vim.cmd("Trouble qflist")
+							end,
+						},
+						n = {
+							["<C-t>"] = function(prompt_bufnr)
+								require("telescope.actions").send_to_qflist(prompt_bufnr)
+								vim.cmd("Trouble qflist")
+							end,
+						},
+					},
 					--     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
 					--   },
 					-- },
@@ -212,6 +230,7 @@ require("lazy").setup({
 			-- See `:help telescope.builtin`
 			local builtin = require("telescope.builtin")
 			vim.keymap.set("n", "<leader>sh", builtin.help_tags, { desc = "[S]earch [H]elp" })
+			vim.keymap.set("n", "<leader>sj", "<cmd>Telescope jumplist<cr>", { desc = "[S]earch Jumplist" })
 			vim.keymap.set("n", "<leader>sk", builtin.keymaps, { desc = "[S]earch [K]eymaps" })
 			vim.keymap.set("n", "<leader>sf", builtin.find_files, { desc = "[S]earch [F]iles" })
 			vim.keymap.set("n", "<leader>sa", function()
@@ -473,7 +492,7 @@ require("lazy").setup({
 			local servers = {
 				-- clangd = {},
 				-- gopls = {},
-				-- pyright = {},
+				pyright = {},
 				-- rust_analyzer = {},
 				-- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
 				--
@@ -483,7 +502,15 @@ require("lazy").setup({
 				-- But for many setups, the LSP (`ts_ls`) will work just fine
 				-- ts_ls = {},
 				--
-
+				bashls = {
+					filetypes = { "bash", "sh" },
+					settings = {
+						bashIde = {
+							-- shellcheck, shfmt, etc.
+							"shellcheck",
+						},
+					},
+				},
 				lua_ls = {
 					-- cmd = { ... },
 					-- filetypes = { ... },
@@ -516,6 +543,9 @@ require("lazy").setup({
 			local ensure_installed = vim.tbl_keys(servers or {})
 			vim.list_extend(ensure_installed, {
 				"stylua", -- Used to format Lua code
+				"pyright",
+				"bash-language-server",
+				"marksman",
 			})
 			require("mason-tool-installer").setup({ ensure_installed = ensure_installed })
 
@@ -577,19 +607,19 @@ require("lazy").setup({
 		},
 	},
 
-	{ -- Autocompletion
+	{ -- autocompletion
 		"saghen/blink.cmp",
-		event = "VimEnter",
+		event = "vimenter",
 		version = "1.*",
 		dependencies = {
-			-- Snippet Engine
+			-- snippet engine
 			{
-				"L3MON4D3/LuaSnip",
+				"l3mon4d3/luasnip",
 				version = "2.*",
 				build = (function()
-					-- Build Step is needed for regex support in snippets.
-					-- This step is not supported in many windows environments.
-					-- Remove the below condition to re-enable on windows.
+					-- build step is needed for regex support in snippets.
+					-- this step is not supported in many windows environments.
+					-- remove the below condition to re-enable on windows.
 					if vim.fn.has("win32") == 1 or vim.fn.executable("make") == 0 then
 						return
 					end
@@ -597,7 +627,7 @@ require("lazy").setup({
 				end)(),
 				dependencies = {
 					-- `friendly-snippets` contains a variety of premade snippets.
-					--    See the README about individual language/framework/plugin snippets:
+					--    see the readme about individual language/framework/plugin snippets:
 					--    https://github.com/rafamadriz/friendly-snippets
 					-- {
 					--   'rafamadriz/friendly-snippets',
@@ -611,70 +641,48 @@ require("lazy").setup({
 			"folke/lazydev.nvim",
 		},
 		--- @module 'blink.cmp'
-		--- @type blink.cmp.Config
+		--- @type blink.cmp.config
+
 		opts = {
 			keymap = {
-				-- 'default' (recommended) for mappings similar to built-in completions
-				--   <c-y> to accept ([y]es) the completion.
-				--    This will auto-import if your LSP supports it.
-				--    This will expand snippets if the LSP sent a snippet.
-				-- 'super-tab' for tab to accept
-				-- 'enter' for enter to accept
-				-- 'none' for no mappings
-				--
-				-- For an understanding of why the 'default' preset is recommended,
-				-- you will need to read `:help ins-completion`
-				--
-				-- No, but seriously. Please read `:help ins-completion`, it is really good!
-				--
-				-- All presets have the following mappings:
-				-- <tab>/<s-tab>: move to right/left of your snippet expansion
-				-- <c-space>: Open menu or open docs if already open
-				-- <c-n>/<c-p> or <up>/<down>: Select next/previous item
-				-- <c-e>: Hide menu
-				-- <c-k>: Toggle signature help
-				--
-				-- See :h blink-cmp-config-keymap for defining your own keymap
 				preset = "default",
-
-				-- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
-				--    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
 			},
 			enabled = function()
-				return vim.bo.buftype ~= "prompt" -- Already disables in Telescope
+				return vim.bo.buftype ~= "prompt" -- already disables in telescope
 			end,
-
 			appearance = {
-				-- 'mono' (default) for 'Nerd Font Mono' or 'normal' for 'Nerd Font'
-				-- Adjusts spacing to ensure icons are aligned
 				nerd_font_variant = "mono",
 			},
-
 			completion = {
-				-- By default, you may press `<c-space>` to show the documentation.
-				-- Optionally, set `auto_show = true` to show the documentation after a delay.
-				documentation = { auto_show = false, auto_show_delay_ms = 500 },
+				-- show_on_keyword = true,
+				-- show_on_trigger_character = true,
+				menu = {
+					-- auto_show = true,
+					-- auto_show_delay_ms = 0,
+				},
+				documentation = {
+					auto_show = true,
+					auto_show_delay_ms = 300,
+				},
 			},
-
+			cmdline = {
+				enabled = true,
+				keymap = { preset = "cmdline" },
+				completion = {
+					menu = {
+						auto_show = true,
+						auto_show_delay_ms = 0,
+					},
+				},
+			},
 			sources = {
 				default = { "lsp", "path", "snippets", "lazydev" },
 				providers = {
 					lazydev = { module = "lazydev.integrations.blink", score_offset = 100 },
 				},
 			},
-
 			snippets = { preset = "luasnip" },
-
-			-- Blink.cmp includes an optional, recommended rust fuzzy matcher,
-			-- which automatically downloads a prebuilt binary when enabled.
-			--
-			-- By default, we use the Lua implementation instead, but you may enable
-			-- the rust implementation via `'prefer_rust_with_warning'`
-			--
-			-- See :h blink-cmp-config-fuzzy for more information
 			fuzzy = { implementation = "lua" },
-
-			-- Shows a signature help window while you type arguments for a function
 			signature = { enabled = true },
 		},
 	},
@@ -868,7 +876,8 @@ require("lazy").setup({
 				keymaps = {
 					["q"] = "actions.close",
 					["<C-h>"] = false,
-					["<S-CR>"] = { "actions.select", opts = { close = false }, desc = "Open without closing Oil" },
+					-- ["<S-CR>"] = { "actions.select", opts = { close = false }, desc = "Open without closing Oil" },
+					["<S-->"] = "actions.parent",
 					-- ["<C-s>"] = "acitons.select_vsplit",
 					-- ["<CR>"] = { "actions.select", opts = { close = false }, desc = "Open without closing Oil" },
 				},
@@ -878,10 +887,7 @@ require("lazy").setup({
 				-- skip_confirm_for_simple_edits = true,
 			})
 
-			vim.keymap.set("n", "-", "<cmd>Oil<CR>", { desc = "Open parent directory" })
-			-- still used to leader e for term
-			vim.keymap.set("n", "<leader>e", "<cmd>Oil<CR>", { desc = "Open parent directory" })
-
+			vim.keymap.set("n", "-", "<CMD>Oil<CR>", { desc = "Open parent directory" })
 			vim.keymap.set("n", "<leader>-", require("oil").toggle_float, { desc = "Open parent directory" })
 
 			vim.api.nvim_create_autocmd("FileType", {
@@ -1068,8 +1074,20 @@ require("lazy").setup({
 		"folke/flash.nvim",
 		event = "VeryLazy",
 		opts = {
+
+			modes = {
+				char = {
+					enabled = false,
+				},
+			},
 			search = {
 				enabled = true,
+				autojump = true,
+				autojump_label = true,
+			},
+			jump = {
+				autojump = true, -- This is the key for auto-jump when only one match
+				jump_labels = true,
 			},
 			check = {
 				jump_labels = true,
@@ -1120,6 +1138,115 @@ require("lazy").setup({
 		},
 	},
 
+	{
+		"folke/trouble.nvim",
+		opts = {
+			-- Optional: show only errors when using `Trouble diagnostics`
+			-- You can override this later in a keymap if needed
+		},
+		cmd = "Trouble",
+		keys = {
+			{ "<leader>xx", "<cmd>Trouble diagnostics toggle<cr>", desc = "Diagnostics (Trouble)" },
+			{ "<leader>xw", "<cmd>Trouble workspace_diagnostics toggle<cr>", desc = "Workspace Diagnostics" },
+			{ "<leader>xl", "<cmd>Trouble loclist toggle<cr>", desc = "Location List" },
+			{ "<leader>xq", "<cmd>Trouble qflist toggle<cr>", desc = "Quickfix List" },
+		},
+		--
+		-- vim.api.nvim_create_autocmd("QuickFixCmdPost", {
+		-- 	callback = function()
+		-- 		vim.cmd("Trouble qflist")
+		-- 	end,
+		-- }),
+	},
+
+	-- lazy.nvim
+	{
+		"folke/noice.nvim",
+		event = "VeryLazy",
+		opts = {
+			-- add any options here
+		},
+		dependencies = {
+			-- if you lazy-load any plugin below, make sure to add proper `module="..."` entries
+			"MunifTanjim/nui.nvim",
+			-- OPTIONAL:
+			--   `nvim-notify` is only needed, if you want to use the notification view.
+			--   If not available, we use `mini` as the fallback
+			-- "rcarriga/nvim-notify",
+		},
+		config = function()
+			require("noice").setup({
+				lsp = {
+					-- override markdown rendering so that **cmp** and other plugins use **Treesitter**
+					override = {
+						["vim.lsp.util.convert_input_to_markdown_lines"] = true,
+						["vim.lsp.util.stylize_markdown"] = true,
+						["cmp.entry.get_documentation"] = true, -- requires hrsh7th/nvim-cmp
+					},
+				},
+				-- views = {
+				cmdline_popup = {
+					position = {
+						row = "50%",
+						col = "50%",
+					},
+					size = {
+						width = 60,
+						height = "auto",
+					},
+					border = {
+						style = "rounded",
+						padding = { 0, 1 },
+					},
+				},
+
+				-- you can enable a preset for easier configuration
+				presets = {
+					-- bottom_search = true, -- use a classic bottom cmdline for search
+					bottom_search = false, -- use a classic bottom cmdline for search
+					-- command_palette = true, -- position the cmdline and popupmenu together
+					long_message_to_split = true, -- long messages will be sent to a split
+					inc_rename = false, -- enables an input dialog for inc-rename.nvim
+					lsp_doc_border = false, -- add a border to hover docs and signature help
+				},
+			})
+		end,
+	},
+	-- Lua
+
+	{
+		"folke/persistence.nvim",
+		event = "BufReadPre", -- only start session saving when an actual file was opened
+		opts = {
+			-- you can add custom options here if you want, or leave empty
+			-- dir = vim.fn.stdpath("state") .. "/sessions/",
+			-- need = 1,
+			-- branch = true,
+		},
+		config = function()
+			require("persistence").setup({})
+
+			-- load the session for the current directory
+			vim.keymap.set("n", "<leader>es", function()
+				require("persistence").load()
+			end, { desc = "load the session for the current directory" })
+
+			-- select a session to load
+			vim.keymap.set("n", "<leader>eS", function()
+				require("persistence").select()
+			end, { desc = "select a session to load" })
+
+			-- load the last session
+			vim.keymap.set("n", "<leader>el", function()
+				require("persistence").load({ last = true })
+			end, { desc = "load the last session" })
+
+			-- stop => session won't be saved on exit
+			vim.keymap.set("n", "<leader>ed", function()
+				require("persistence").stop()
+			end, { desc = "stop => session won't be saved on exit" })
+		end,
+	},
 	-- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
 	--    This is the easiest way to modularize your config.
 	--
