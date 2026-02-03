@@ -1,5 +1,6 @@
 # ~/.config/bash/bookmarks.sh
 
+
 BM_FILE="$HOME/.bookmarks"
 
 sb() {

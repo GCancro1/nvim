@@ -1,8 +1,23 @@
 
+
+# Colors
+GREEN='\[\033[01;32m\]'
+BLUE='\[\033[01;34m\]'
+YELLOW='\[\033[01;33m\]'
+RESET='\[\033[00m\]'
+
+# Prompt
 parse_git_branch() {
-    git branch 2> /dev/null | sed -n '/^\* /s/^\* //p'
+    local branch
+    branch=$(git branch 2>/dev/null | sed -n '/^\* /s/^\* //p')
+    [ -n "$branch" ] && printf "(%s)" "$branch"
 }
-export PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[01;33m\]$(parse_git_branch)\[\033[00m\]\$ '
+export PS1="${BLUE}\w${YELLOW} \$(parse_git_branch)${RESET}\$ "
 
 alias v='nvim'
 alias ll='ls -alFh'
+
+
+function nvconf {
+    nvim -S "$HOME/conf_ses.vim"
+}

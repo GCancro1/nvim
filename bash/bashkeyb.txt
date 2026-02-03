@@ -1,4 +1,3 @@
-
 sb <name>        → save current dir as bookmark
 gb <name>        → cd to bookmark
 lb               → list all bookmarks

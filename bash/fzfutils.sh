@@ -55,13 +55,13 @@ fopen() {
 
 # Fuzzy keybindings cheat sheet
 kbs() {
-    if [ ! -f "$HOME/.config/keys.txt" ]; then
-        echo "No keys.txt found. Create ~/.config/keys.txt with your bindings."
+    if [ ! -f "$HOME/.config/bash/bashkeyb.txt" ]; then
+        echo "No bashkeyb.txt found. Create ~/.config/keys.txt with your bindings."
         return 1
     fi
     fzf --height=80% --reverse --border --info=inline \
         --prompt='Keybindings> ' \
-        --preview 'echo "KEYBINDINGS CHEAT SHEET" && bat --color=always --style=numbers ~/.config/keys.txt' \
-        < ~/.config/keys.txt
+        --preview 'echo "KEYBINDINGS CHEAT SHEET" && bat --color=always --style=numbers ~/.config/bash/bashkeyb.txt' \
+        < ~/.config/bash/bashkeyb.txt
 }
 bind -x '"\C-k": kbs'
